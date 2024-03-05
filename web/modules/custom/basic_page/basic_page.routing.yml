@@ -1,0 +1,8 @@
+basic_page.content:
+  path: '/mylist'
+  defaults:
+    _controller: '\Drupal\basic_page\Controller\BasicPageController::basicPage'
+    _title: 'Registered Users Information'
+  requirements:
+    _permission: 'access basic page content'
+    # _role: 'editor'

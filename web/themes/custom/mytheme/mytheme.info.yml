@@ -1,0 +1,8 @@
+name: My Custom Theme
+type: theme
+description: 'My own created custom theme'
+core_version_requirement: ^8 || ^9
+base theme: false
+
+libraries:
+  - mytheme/global-styling

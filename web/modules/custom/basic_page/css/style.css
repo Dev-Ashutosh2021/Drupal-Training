@@ -1,0 +1,30 @@
+body{
+    color: red !important;
+}
+
+table, th, td {
+    border: 1px solid red !important;
+  }
+
+  th{
+    color: tomato !important;
+  }
+
+
+
+  #block-b5subtheme-page-title {
+    width: 100% !important;
+    overflow: hidden !important;
+    white-space: nowrap !important;
+  }
+  
+  #block-b5subtheme-page-title h1 {
+    display: inline-block !important;
+    padding-left: 30% !important; /* Ensures the span starts outside the viewport */
+    animation: marquee 15s linear infinite !important; /* Adjust duration as needed */
+  }
+  
+  @keyframes marquee {
+    0%   { transform: translateX(100%); }
+    100% { transform: translateX(-100%); }
+  }

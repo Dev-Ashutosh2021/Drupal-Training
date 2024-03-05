@@ -1,0 +1,8 @@
+name: Bootstrap5 - Subtheme
+type: theme
+description: 'Subtheme with Bootstrap 5 css library'
+core_version_requirement: ^9.4 || ^10
+base theme: bootstrap5
+
+libraries:
+  - bootstrap5_subtheme/global-styling

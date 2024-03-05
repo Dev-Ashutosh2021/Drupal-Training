@@ -1,0 +1,7 @@
+custom_user_info.content:
+  path: 'current-user-info'
+  defaults:
+    _controller: '\Drupal\custom_user_info\Controller\CustomUserInfoController::content'
+    _title: 'Current User Info'
+  requirements:
+    _permission: 'access content'
