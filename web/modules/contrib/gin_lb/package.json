@@ -85,7 +85,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git.drupalcode.org/project/gin"
+    "url": "git.drupalcode.org/project/gin_lb"
   },
   "browserslist": [
     "last 2 versions",

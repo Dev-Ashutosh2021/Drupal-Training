@@ -25,46 +25,39 @@ $maxWidth: 520px;
 
 .glb-form-item__label
 {
+    display: table !important;
+    margin-top: .25em !important;
+    margin-bottom: .25em !important;
     font-size: .889em !important;
     font-weight: bold !important;
     line-height: 1.125em !important;
 
-    display: table !important;
-
-    margin-top: .25em !important;
-    margin-bottom: .25em !important;
-
     &.glb-option
     {
-        font-weight: normal !important;
-
         display: inline !important;
+        font-weight: normal !important;
     }
 
     .glb-form-type--checkbox &
     {
-        font-weight: normal !important;
-
         display: inline-block !important;
+        font-weight: normal !important;
     }
 }
 
 .glb-form-element
 {
-    font-size: 1em !important;
-    line-height: 1.5em !important;
-
     box-sizing: border-box !important;
     width: 100%;
     max-width: 100% !important;
     padding: calc(.75em - 1px) calc(1em - 1px) !important;
-
     color: var(--gin-color-text) !important;
     border: 1px solid var(--gin-border-color-form-element) !important;
     border-radius: $borderDefault !important;
     background: #fff !important;
     box-shadow: 0 1px 2px rgba(0, 0, 0, .25) !important;
-
+    font-size: 1em !important;
+    line-height: 1.5em !important;
     appearance: none !important;
 
     &:hover
@@ -139,7 +132,6 @@ $maxWidth: 520px;
 .glb-form-element--type-select
 {
     padding-right: calc(2.5em - 1px) !important;
-
     background-image: url('data:image/svg+xml,%3csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 14 9\'%3e%3cpath fill=\'none\' stroke-width=\'1.5\' d=\'M1 1l6 6 6-6\' stroke=\'%23545560\'/%3e%3c/svg%3e') !important;
     background-repeat: no-repeat !important;
     background-position: 100% 50% !important;
@@ -153,19 +145,16 @@ $maxWidth: 520px;
 
 .glb-form-element--type-select--small
 {
+    min-height: 2.25em !important;
+    background-position: 100% 52% !important;
     font-size: .79em !important;
     line-height: 1 !important;
-
-    min-height: 2.25em !important;
-
-    background-position: 100% 52% !important;
 }
 
 .glb-form-boolean
 {
     width: 21px !important;
     height: 21px !important;
-
     border-color: var(--gin-border-color-form-element) !important;
     border-radius: $borderSmall !important;
 }
@@ -185,9 +174,10 @@ $maxWidth: 520px;
     {
         .gin--dark-mode &
         {
-            background-image: icon('checked') !important;
 
-            $iconColor: 1 B1B1D !important;
+            $iconColor: 1 b1b1d !important;
+
+            background-image: icon('checked') !important;
         }
     }
 }
@@ -197,51 +187,39 @@ $maxWidth: 520px;
 :not(.glb-form-checkboxes):not(td):not(.media-library-item__click-to-select-checkbox):not(.field-content) > .glb-form-type--checkbox
 {
     position: relative !important;
-
     margin-left: 0 !important;
 
     .glb-checkbox-toggle
     {
         z-index: 0 !important;
-
         display: inline-block !important;
-
         box-sizing: border-box !important;
         width: 40px !important;
         height: 24px !important;
-
         vertical-align: top !important;
-
         border-radius: 12px !important;
         background-color: #909090 !important;
 
         &__inner
         {
             position: relative !important;
-
             display: block !important;
             overflow: hidden !important;
-
             box-sizing: border-box !important;
             width: 100% !important;
             height: 100% !important;
-
             border: 4px solid transparent !important;
             border-radius: 12px !important;
-
             clip-path: circle(24px at 50% 50%) !important;
 
-            &:before
+            &::before
             {
                 position: absolute !important;
-
                 width: 100% !important;
                 height: 100% !important;
-
                 content: '' !important;
                 transition: transform .3s !important;
                 transform: translateX(-16px) !important;
-
                 border-radius: 21px !important;
                 background-color: #fff !important;
 
@@ -255,19 +233,16 @@ $maxWidth: 520px;
 
     input
     {
+
+        @include visually-hidden;
+
         z-index: 1 !important;
-
         clip: auto !important;
-
         width: 40px !important;
         height: 24px !important;
         margin-left: 0 !important;
-
         cursor: pointer !important;
-
         opacity: 0 !important;
-
-        @include visually-hidden;
 
         &:hover,
         &:focus,
@@ -290,7 +265,7 @@ $maxWidth: 520px;
         {
             background-color: var(--gin-switch) !important;
 
-            &:before
+            &::before
             {
                 transform: translateX(16px) !important;
             }
@@ -322,10 +297,8 @@ $maxWidth: 520px;
     {
         position: relative !important;
         z-index: 1 !important;
-
         padding-bottom: 0 !important;
         padding-left: 4px !important;
-
         color: var(--gin-color-text) !important;
     }
 }
@@ -408,7 +381,6 @@ $maxWidth: 520px;
 {
     margin-bottom: 0;
     padding: 0;
-
     border: 0 none;
     background-color: transparent;
 }
@@ -433,18 +405,17 @@ fieldset:not(.fieldgroup)
     padding-top: 8px;
     padding-right: 0;
     padding-left: 0;
+    border-width: 1px;
     border-color: var(--gin-border-color);
     border-radius: $borderDefault;
     background: transparent;
     box-shadow: none;
-    border-width: 1px;
 
      > legend
     {
+        top: 20px;
         font-size: 1em !important;
         font-weight: bold;
-
-        top: 20px;
     }
 
      > .fieldset-wrapper
@@ -469,14 +440,12 @@ fieldset:not(.fieldgroup)
 .glb-form-item__description,
 .glb-fieldset__description
 {
-    font-size: .79em;
-    line-height: 1.0625em;
-
     max-width: $maxWidth !important;
     margin-top: .375em;
     margin-bottom: .375em;
-
     color: var(--gin-color-text-light) !important;
+    font-size: .79em;
+    line-height: 1.0625em;
 }
 
 .glb-form-item__label.glb-form-required::after,
@@ -484,7 +453,6 @@ fieldset:not(.fieldgroup)
 {
     content: '*' !important;
     vertical-align: text-top !important;
-
     color: var(--gin-color-danger) !important;
     background: none !important;
 }
@@ -492,7 +460,6 @@ fieldset:not(.fieldgroup)
 .glb-form-item__warning
 {
     display: inline-block !important;
-
     margin-top: .5em !important;
 }
 
@@ -507,8 +474,8 @@ fieldset:not(.fieldgroup)
   & .ui-autocomplete .ui-menu-item-wrapper {
     display: block;
     padding: 0.75rem 0.9375rem;
-    background: inherit;
     color: var(--gin-color-primary) !important;
+    background: inherit;
     &:hover {
       color: white !important;
       background: var(--gin-color-primary) !important;
@@ -530,7 +497,6 @@ fieldset:not(.fieldgroup)
     &::after
     {
         background: var(--gin-color-danger) !important;
-
         mask-image: icon('asterisk') !important;
         mask-position: center center !important;
         mask-size: 100% 100% !important;
@@ -549,21 +515,19 @@ fieldset:not(.fieldgroup)
     label
     {
         position: relative;
-
         padding-bottom: 4px;
-
         color: var(--gin-color-text);
     }
 }
 
 .field-multiple-table {
   .glb-claro-details {
-    margin-left: 0 !important;
+    margin-top: 1em !important;
     margin-right: 0 !important;
+    margin-bottom: 1em !important;
+    margin-left: 0 !important;
     border: 1px solid var(--gin-border-color) !important;
     border-radius: 8px !important;
-    margin-top: 1em !important;
-    margin-bottom: 1em !important;
   }
 
   .glb-claro-details__summary {
@@ -585,7 +549,6 @@ fieldset:not(.fieldgroup)
     {
         padding-right: 0 !important;
         padding-left: 0 !important;
-
         border: 0 none !important;
     }
 }
@@ -594,7 +557,6 @@ fieldset:not(.fieldgroup)
 .js input.form-linkit-autocomplete
 {
     padding-right: 2em;
-
     background-position: right 8px center;
 }
 
@@ -619,20 +581,16 @@ fieldset:not(.fieldgroup)
 .glb-form-checkbox
 {
     display: inline-block !important;
-
     box-sizing: border-box !important;
     width: 21px !important;
     height: 21px !important;
-
     vertical-align: text-bottom !important;
-
     border: 1px solid #8e929c !important;
     border-radius: 4px !important;
     background-color: #fff !important;
     background-image: url('data:image/svg+xml,%3csvg width=\'16\' height=\'16\' xmlns=\'http://www.w3.org/2000/svg\'%3e%3cpath d=\'M3.795 7.096l2.387 2.506 6.023-6.327 1.484 1.56-7.507 7.89L2.31 8.656z\' fill=\'%23fff\'/%3e%3c/svg%3e') !important;
     background-size: 100% 100% !important;
     box-shadow: 0 0 0 4px transparent !important;
-
     appearance: none !important;
 
     &:checked

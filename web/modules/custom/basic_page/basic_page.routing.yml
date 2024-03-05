@@ -6,3 +6,27 @@ basic_page.content:
   requirements:
     _permission: 'access basic page content'
     # _role: 'editor'
+
+
+
+
+basic_page.task23:
+  path: '/render-custom-block'
+  defaults:
+    _controller: '\Drupal\basic_page\Controller\BasicPageController::renderCustomBlock'
+    _title: 'Create a rounting page and render custom block on that page'
+  requirements:
+    _permission: 'access content'
+
+
+
+
+
+basic_page.studentRegistration:
+  path: '/student-registration'
+  defaults:
+    _form: '\Drupal\basic_page\Form\RegistrationForm'
+    _title: 'Student Registration Form'
+  requirements:
+    _permission: 'access content'
+    _access: 'TRUE'

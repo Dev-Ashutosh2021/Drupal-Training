@@ -16,19 +16,19 @@
 
 // Close button content and color management. as the one provided by jQuery UI is not generated.
 .ui-dialog-titlebar-close {
-  &:after {
+  &::after {
     display: inline-block;
     content: "\00d7";
     font-size: 32px;
   }
 
-  .ui-dialog &:after {
-    background-color: #1b1b1d;
+  .ui-dialog &::after {
     color: #fff;
+    background-color: #1b1b1d;
   }
 
-  .ui-dialog.ui-dialog-off-canvas &:after {
-    background-color: var(--gin-bg-layer);
+  .ui-dialog.ui-dialog-off-canvas &::after {
     color: var(--gin-color-title);
+    background-color: var(--gin-bg-layer);
   }
 }

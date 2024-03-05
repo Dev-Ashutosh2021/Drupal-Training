@@ -1,7 +1,6 @@
 .media-library-wrapper
 {
     display: flex;
-
     margin: 0 !important;
      > ul
     {
@@ -31,22 +30,18 @@
 {
     margin: 0;
     padding: 0;
-
     outline: none;
 }
 
 .glb-media-library-add-form__media
 {
     position: relative;
-
     display: flex;
-
     border-bottom: 1px solid #c0c0c0;
 
     &:last-child
     {
         padding-bottom: 0;
-
         border-bottom: 0;
     }
 }
@@ -56,10 +51,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-
     width: 13.75em;
     margin-right: 1.25em;
-
     background: var(--gin-bg-app);
 
     img
@@ -83,7 +76,6 @@
 {
     position: absolute;
     right: 0;
-
     background-image: url('data:image/svg+xml,%3csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'16\' height=\'16\'%3e%3cpath fill=\'%23000000\' d=\'M3.51 13.925c.194.194.512.195.706.001l3.432-3.431c.194-.194.514-.194.708 0l3.432 3.431c.192.194.514.193.707-.001l1.405-1.417c.191-.195.189-.514-.002-.709l-3.397-3.4c-.192-.193-.192-.514-.002-.708l3.401-3.43c.189-.195.189-.515 0-.709l-1.407-1.418c-.195-.195-.513-.195-.707-.001l-3.43 3.431c-.195.194-.516.194-.708 0l-3.432-3.431c-.195-.195-.512-.194-.706.001l-1.407 1.417c-.194.195-.194.515 0 .71l3.403 3.429c.193.195.193.514-.001.708l-3.4 3.399c-.194.195-.195.516-.001.709l1.406 1.419z\'/%3e%3c/svg%3e');
     background-repeat: no-repeat;
     background-position: .5em center;
@@ -91,17 +83,15 @@
 
     &.glb-button--extrasmall
     {
-        font-size: .79em !important;
-
         margin: .5em 0 !important;
         padding: calc(.25em - 1px) calc(.75em - 1px) calc(.25em - 1px) 1.5em !important;
+        font-size: .79em !important;
     }
 }
 
 .glb-media-library-item
 {
     position: relative !important;
-
     background: none !important;
 
     &--table
@@ -110,7 +100,6 @@
         {
             max-width: 100px;
             height: auto;
-
             vertical-align: middle;
         }
     }
@@ -118,12 +107,9 @@
     &--grid
     {
         justify-content: center !important;
-
         box-sizing: border-box !important;
         padding: 8px !important;
-
         vertical-align: top !important;
-
         border-radius: $borderBig !important;
         outline: none !important;
         background: #fff !important;
@@ -132,14 +118,11 @@
             position: absolute;
             top: 7px;
             left: 7px;
-
             width: calc(100% - 16px);
             height: calc(100% - 16px);
-
             content: '';
             transition: border-color .2s, color .2s, background .2s;
             pointer-events: none;
-
             border: 1px solid #dbdbdb;
             border-radius: 2px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, .1);
@@ -160,7 +143,7 @@
             background: var(--gin-bg-layer);
             box-shadow: 0 0 48px rgba(0, 0, 0, .075) !important;
 
-            // Hide emove button on ghost.
+            // Hide remove button on ghost.
             .glb-media-library-item__remove
             {
                 display: none;
@@ -177,7 +160,6 @@
     &__content
     {
         display: flex;
-
         height: 100%;
 
         article
@@ -188,36 +170,27 @@
 
     &__name
     {
-        font-size: 14px !important;
-
         overflow: visible !important;
-
         margin: 0 !important;
-
         white-space: initial !important;
         text-overflow: initial !important;
         word-break: break-all;
-
         color: var(--gin-color-text);
+        font-size: 14px !important;
     }
 
     &__attributes
     {
         position: static;
-
         padding: .5em;
-
         background: none;
     }
 
     &__preview
     {
         position: relative;
-
         overflow: hidden;
-
         padding-bottom: 100%;
-
         border: 3px solid transparent;
         border-radius: $borderBig;
 
@@ -226,10 +199,8 @@
             position: absolute;
             top: 0;
             left: 0;
-
             width: 100%;
             height: 100%;
-
             object-fit: cover;
         }
     }
@@ -246,35 +217,26 @@
     }
     .media-library-edit__link
     {
-        font-size: 0 !important;
-
         top: 18px !important;
         right: 5px !important;
-
         width: 29px !important;
         height: 29px !important;
-
         color: transparent !important;
         border-color: var(--gin-border-color) !important;
         text-shadow: none !important;
+        font-size: 0 !important;
     }
 
     & &__edit,
     & &__remove,
     & &__remove.glb-button
     {
-        font-size: 0 !important;
-
         position: absolute !important;
         z-index: 1 !important;
         top: 10px !important;
-
         overflow: hidden !important;
-
         padding: 0 !important;
-
         transition: .2s border-color !important;
-
         color: transparent !important;
         border-color: var(--gin-border-color) !important;
         background-image: url('data:image/svg+xml,%3csvg width=\'16\' height=\'16\' fill=\'none\' xmlns=\'http://www.w3.org/2000/svg\'%3e%3cpath d=\'M2.344 2.343l11.313 11.313M2.344 13.657L13.657 2.343\' stroke=\'%2355565B\' stroke-width=\'3\'/%3e%3c/svg%3e') !important;
@@ -282,6 +244,7 @@
         background-position: center !important;
         background-size: 12px !important;
         text-shadow: none !important;
+        font-size: 0 !important;
 
         &:link,
         &:not(:hover):not(:checked)
@@ -303,7 +266,6 @@
             height: 29px !important;
             // We can't use em for the margin since the button font-size is 0.
             margin: 12px !important;
-
             border-radius: 50% !important;
             background-color: white !important;
             box-shadow: 0 2px 4px rgba(0, 0, 0, .15) !important;
@@ -311,15 +273,14 @@
     }
     & .glb-media-library-item__edit
       {
-        background-image: url('data:image/svg+xml,%3Csvg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"%3E%3Cpath fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"%3E%3C/path%3E%3C/svg%3E%0A') !important;
         right: 3.125em;
+        background-image: url('data:image/svg+xml,%3Csvg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"%3E%3Cpath fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"%3E%3C/path%3E%3C/svg%3E%0A') !important;
     }
 
     &__click-to-select-checkbox .form-boolean
     {
         width: 29px;
         height: 29px;
-
         border-radius: $borderSmall;
         box-shadow: 0 2px 4px rgba(0, 0, 0, .15);
 
@@ -359,9 +320,8 @@
     &__rows
     {
         display: flex;
-        flex-basis: 100%;
         flex-wrap: wrap;
-
+        flex-basis: 100%;
         margin: 0 -8px;
     }
 }
@@ -377,7 +337,6 @@
     z-index: 1;
     top: 16px;
     left: 16px;
-
     display: block;
     & .glb-form-type--checkbox
     {
@@ -387,7 +346,6 @@
     {
         width: 29px !important;
         height: 29px !important;
-
         border-radius: 4px !important;
         -webkit-box-shadow: 0 2px 4px rgba(0,0,0,.15) !important;
                 box-shadow: 0 2px 4px rgba(0,0,0,.15) !important;
@@ -403,15 +361,13 @@
 fieldset.glb-media-library-widget
 {
     padding: 1.5em;
-
     border: 1px solid var(--gin-border-color);
     border-radius: 6px;
 
     .media-library-widget__toggle-weight
     {
-        font-size: .75em;
-
         padding: 8px;
+        font-size: .75em;
     }
 
     .fieldset__wrapper
@@ -442,7 +398,6 @@ fieldset.glb-media-library-widget
     &__input-wrapper
     {
         padding: 0;
-
         border: none;
         background: transparent;
     }
@@ -451,37 +406,28 @@ fieldset.glb-media-library-widget
 .glb-media-library-menu
 {
     position: relative !important;
-
     display: block !important;
-
     width: 20em !important;
     margin: 0 !important;
     padding-top: .5em !important;
     padding-left: 0 !important;
-
     list-style: none !important;
-
     border-color: var(--gin-border-color) !important;
     background-color: var(--gin-bg-app) !important;
 
     &__item
     {
         overflow: hidden;
-
         margin: -1em -1px -.5em -.5em;
         padding: .5em 0;
 
-        &:before
+        &::before
         {
             z-index: 0;
-
             display: block;
-
             width: 100%;
             margin-top: -1px;
-
             content: '';
-
             border-top: 1px solid #d4d4d8;
         }
     }
@@ -489,16 +435,12 @@ fieldset.glb-media-library-widget
     &__link
     {
         position: relative;
-
         display: block;
-
         margin-top: -1px;
         padding: .75em .75em .75em calc(1.5em - .25em);
-
         text-decoration: none;
         word-wrap: break-word;
         hyphens: auto;
-
         color: var(--gin-color-text);
         border: 1px solid var(--gin-border-color);
         border-width: 1px 0 1px 4px;
@@ -517,7 +459,7 @@ fieldset.glb-media-library-widget
             text-shadow: none;
         }
 
-        &:before
+        &::before
         {
             position: absolute;
             z-index: -1;
@@ -525,10 +467,8 @@ fieldset.glb-media-library-widget
             right: 0;
             bottom: -1px;
             left: -.25em;
-
             content: '';
             pointer-events: none;
-
             background-clip: padding-box;
         }
 
@@ -537,10 +477,9 @@ fieldset.glb-media-library-widget
             z-index: 2;
         }
 
-        &.active:before
+        &.active::before
         {
             z-index: 1;
-
             border-left: 4px solid #003cc5;
             border-radius: 2px 0 0 2px;
         }
@@ -549,10 +488,8 @@ fieldset.glb-media-library-widget
     & + .media-library-content
     {
         z-index: 0;
-
         width: 100%;
         padding: 1em;
-
         border-left: 1px solid var(--gin-border-color);
         outline: none;
         box-shadow: 0 2px 4px rgba(0, 0, 0, .1);
@@ -569,13 +506,10 @@ fieldset.glb-media-library-widget
     {
         display: inline-block;
         align-self: flex-end;
-
         margin: 1em 0;
         padding: 1em;
-
         text-align: right;
         text-decoration: none;
-
         color: var(--gin-color-text);
         border-radius: $borderDefault;
         background: var(--gin-bg-layer3);
@@ -588,33 +522,25 @@ fieldset.glb-media-library-widget
 {
     .views-display-link
     {
+        position: relative;
+        margin-right: 15px;
+        padding-left: 22px;
+        white-space: nowrap;
+        text-decoration: none;
+        color: var(--gin-color-text);
+        color: #333;
         font-size: 15px;
         line-height: 16px;
 
-        position: relative;
-
-        margin-right: 15px;
-        padding-left: 22px;
-
-        white-space: nowrap;
-        text-decoration: none;
-
-        color: var(--gin-color-text);
-        color: #333;
-
-        &:before
+        &::before
         {
             position: absolute;
             top: 1px;
             left: 0;
-
             display: inline-block;
-
             width: 16px;
             height: 16px;
-
             content: '';
-
             background-color: var(--gin-color-text);
         }
 
@@ -622,7 +548,7 @@ fieldset.glb-media-library-widget
         {
             color: var(--gin-color-primary);
 
-            &:before
+            &::before
             {
                 background-color: var(--gin-color-primary);
             }
@@ -631,7 +557,7 @@ fieldset.glb-media-library-widget
 
     .views-display-link-widget
     {
-        &:before
+        &::before
         {
             mask-image: icon('grid') !important;
         }
@@ -639,7 +565,7 @@ fieldset.glb-media-library-widget
 
     .views-display-link-widget_table
     {
-        &:before
+        &::before
         {
             mask-image: icon('list');
         }
@@ -655,7 +581,6 @@ fieldset.glb-media-library-widget
 {
     margin-top: 0;
     padding: 1em;
-
     color: var(--gin-color-title);
     border-radius: $borderDefault;
     background: var(--gin-bg-header);
@@ -693,18 +618,15 @@ input[data-media-library-widget-update]
 {
     display: flex;
     flex-wrap: wrap;
-
     margin: 1em -.5em;
 }
 
 .glb-media-library-item--grid
 {
     justify-content: center;
-
     box-sizing: border-box;
     width: 50%;
     padding: .5em;
-
     background: none !important;
 }
 
@@ -753,19 +675,16 @@ input[data-media-library-widget-update]
         width: 25%;
     }
 }
-.glb-media-library-item--grid:before
+.glb-media-library-item--grid::before
 {
     position: absolute;
     top: .4375em;
     left: .4375em;
-
     width: calc(100% - 1em);
     height: calc(100% - 1em);
-
     content: '';
     transition: border-color .2s, color .2s, background .2s;
     pointer-events: none;
-
     border: 1px solid #dbdbdb;
     border-radius: 2px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, .1);

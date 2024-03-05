@@ -1,5 +1,4 @@
 .glb-region-sticky {
-  background: var(--gin-bg-app);
   font-family: Inter, -apple-system, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
 
   &__items__inner {
@@ -8,9 +7,9 @@
   }
 
   .block-page-title-block {
+    display: flex;
     flex: 1;
     align-items: center;
-    display: flex;
   }
 
   .gin-sticky {

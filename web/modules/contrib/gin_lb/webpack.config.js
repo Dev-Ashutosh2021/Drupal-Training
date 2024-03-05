@@ -12,8 +12,6 @@ module.exports = {
   entry: {
     gin_lb: ['./styles/gin_lb.scss'],
     gin_lb_10: ['./styles/gin_lb_10.scss'],
-    gin_lb_js: ['./js/gin_lb.js'],
-    gin_lb_toastify: ['./js/gin_lb_toastify.js'],
   },
   output: {
     devtoolLineToLine: true,
@@ -56,10 +54,6 @@ module.exports = {
             },
           },
         ],
-      },
-      {
-        test: /modernizrrc\.js$/,
-        loader: 'expose-loader?Modernizr!webpack-modernizr-loader',
       },
       {
         test: /\.js$/,
