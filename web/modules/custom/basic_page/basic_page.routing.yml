@@ -14,7 +14,7 @@ basic_page.task23:
   path: '/render-custom-block'
   defaults:
     _controller: '\Drupal\basic_page\Controller\BasicPageController::renderCustomBlock'
-    _title: 'Create a rounting page and render custom block on that page'
+    _title: 'Create a routing page and render custom block on that page'
   requirements:
     _permission: 'access content'
 
@@ -23,10 +23,9 @@ basic_page.task23:
 
 
 basic_page.studentRegistration:
-  path: '/student-registration'
+  path: '/basic-form'
   defaults:
     _form: '\Drupal\basic_page\Form\RegistrationForm'
-    _title: 'Student Registration Form'
+    _title: 'Basic Form'
   requirements:
     _permission: 'access content'
-    _access: 'TRUE'

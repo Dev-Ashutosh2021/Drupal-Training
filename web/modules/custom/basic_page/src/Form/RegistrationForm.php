@@ -10,38 +10,38 @@ class RegistrationForm extends FormBase
 
   public function getFormId()
   {
-    return 'student_registration_form';
+    return 'employee_registration_form';
   }
 
   public function buildForm(array $form, FormStateInterface $form_state)
   {
-    $form['student_name'] = array(
+    $form['employee_name'] = array(
       '#type' => 'textfield',
-      '#title' => t('Enter Name:'),
+      '#title' => t('Enter Full Name:'),
       '#required' => TRUE,
     );
-    $form['student_rollno'] = array(
+    $form['employee_id'] = array(
       '#type' => 'textfield',
-      '#title' => t('Enter Enrollment Number:'),
+      '#title' => t('Enter Employee ID:'),
       '#required' => TRUE,
     );
-    $form['student_mail'] = array(
+    $form['employee_email'] = array(
       '#type' => 'email',
       '#title' => t('Enter Email ID:'),
       '#required' => TRUE,
     );
-    $form['student_phone'] = array(
+    $form['employee_phone'] = array(
       '#type' => 'tel',
-      '#title' => t('Enter Contact Number'),
+      '#title' => t('Enter Contact Number:'),
     );
-    $form['student_dob'] = array(
+    $form['employee_dob'] = array(
       '#type' => 'date',
-      '#title' => t('Enter DOB:'),
+      '#title' => t('Enter Date of Birth:'),
       '#required' => TRUE,
     );
-    $form['student_gender'] = array(
+    $form['employee_gender'] = array(
       '#type' => 'select',
-      '#title' => ('Select Gender:'),
+      '#title' => t('Select Gender:'),
       '#options' => array(
         'Male' => t('Male'),
         'Female' => t('Female'),
@@ -57,21 +57,19 @@ class RegistrationForm extends FormBase
     return $form;
   }
 
-  public function validateForm(array &$form, FormStateInterface $form_state)
-  {
-    if (strlen($form_state->getValue('student_rollno')) < 8) {
-      $form_state->setErrorByName('student_rollno', $this->t('Please enter a valid Enrollment Number'));
+  public function validateForm(array &$form, FormStateInterface $form_state) {
+    if(strlen($form_state->getValue('employee_id')) < 8) {
+      $form_state->setErrorByName('employee_id', $this->t('Please enter a valid Employee ID'));
     }
-    if (strlen($form_state->getValue('student_phone')) < 10) {
-      $form_state->setErrorByName('student_phone', $this->t('Please enter a valid Contact Number'));
+    if(strlen($form_state->getValue('employee_phone')) < 10) {
+      $form_state->setErrorByName('employee_phone', $this->t('Please enter a valid Contact Number'));
     }
   }
-
-  public function submitForm(array &$form, FormStateInterface $form_state)
-  {
-    \Drupal::messenger()->addMessage(t("Student Registration Done!! Registered Values are:"));
-    foreach ($form_state->getValues() as $key => $value) {
-      \Drupal::messenger()->addMessage($key . ': ' . $value);
+  
+  public function submitForm(array &$form, FormStateInterface $form_state) {
+    \Drupal::messenger()->addMessage(t("Employee Registration Done!! Registered Values are:"));
+  foreach ($form_state->getValues() as $key => $value) {
+    \Drupal::messenger()->addMessage($key . ': ' . $value);
     }
   }
 

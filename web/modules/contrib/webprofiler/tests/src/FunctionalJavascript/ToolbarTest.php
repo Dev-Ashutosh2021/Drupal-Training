@@ -1,74 +1,76 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace Drupal\Tests\webprofiler\FunctionalJavascript;
 
+use Drupal\FunctionalJavascriptTests\WebDriverTestBase;
+
 /**
- * Tests the JavaScript functionality of webprofiler.
+ * Tests the toolbar.
  *
  * @group webprofiler
  */
-class ToolbarTest extends WebprofilerTestBase {
+class ToolbarTest extends WebDriverTestBase {
 
   /**
-   * {@inheritdoc}
+   * Modules to enable.
+   *
+   * @var string[]
    */
-  public static $modules = ['webprofiler', 'node'];
+  protected static $modules = ['devel', 'tracer', 'webprofiler'];
 
   /**
-   * {@inheritdoc}
+   * Theme to enable.
+   *
+   * @var string
    */
-  public function setUp() {
-    parent::setUp();
-
-    \Drupal::configFactory()->getEditable('system.site')->set('page.front', '/node')->save(TRUE);
-  }
+  protected $defaultTheme = 'olivero';
 
   /**
-   * Tests if the toolbar appears on front page.
+   * Test that the toolbar is visible.
+   *
+   * @throws \Behat\Mink\Exception\ElementNotFoundException
+   * @throws \Drupal\Core\Entity\EntityStorageException
    */
-  public function testToolbarOnFrontPage() {
-    $this->loginForToolbar();
+  public function testToolbarVisible(): void {
+    $account = $this->drupalCreateUser(['view webprofiler toolbar']);
+    $this->drupalLogin($account);
 
     $this->drupalGet('<front>');
+    $this->assertSession()->elementExists('css', '.sf-toolbar');
 
-    $this->waitForToolbar();
+    /** @var \Drupal\FunctionalJavascriptTests\WebDriverWebAssert $assert_session */
+    $assert_session = $this->assertSession();
 
-    $assert = $this->assertSession();
-    $assert->responseContains('Configure Webprofiler');
-    $assert->responseContains('View latest reports');
-    $assert->responseContains('Drupal Documentation');
-    $assert->responseContains('Get involved!');
+    static::assertNotEmpty($assert_session->waitForElement('css', '.sf-toolbar-status'));
+    static::assertNotEmpty($assert_session->waitForElement('css', '.sf-toolbar-status-green'));
+
+    $status = $this->getSession()->getPage()->find('css', '.sf-toolbar-status')->getText();
+    static::assertEquals('200', $status);
   }
 
   /**
-   * Tests the toolbar report page.
+   * Test that the toolbar is visible.
+   *
+   * @throws \Behat\Mink\Exception\ElementNotFoundException
+   * @throws \Drupal\Core\Entity\EntityStorageException
    */
-  public function testToolbarReportPage() {
-    $this->loginForDashboard();
+  public function testToolbarPageNotFound(): void {
+    $account = $this->drupalCreateUser(['view webprofiler toolbar']);
+    $this->drupalLogin($account);
 
-    $this->drupalGet('<front>');
+    $this->drupalGet('page-not-found');
+    $this->assertSession()->elementExists('css', '.sf-toolbar');
 
-    $this->drupalGet('admin/reports/profiler/list');
+    /** @var \Drupal\FunctionalJavascriptTests\WebDriverWebAssert $assert_session */
+    $assert_session = $this->assertSession();
 
-    // @todo assert some content.
-  }
+    static::assertNotEmpty($assert_session->waitForElement('css', '.sf-toolbar-status'));
+    static::assertNotEmpty($assert_session->waitForElement('css', '.sf-toolbar-status-red'));
 
-  /**
-   * Tests the toolbar not appears on excluded path.
-   */
-  public function testToolbarNotAppearsOnExcludedPath() {
-    $this->loginForDashboard();
-
-    $this->drupalGet('admin/config/development/devel');
-    $this->waitForToolbar();
-    $assert = $this->assertSession();
-    $assert->responseContains('Configure Webprofiler');
-
-    $this->config('webprofiler.config')
-      ->set('exclude', '/admin/config/development/devel')
-      ->save();
-    $this->drupalGet('admin/config/development/devel');
-    $this->assertSession()->responseNotContains('sf-toolbar');
+    $status = $this->getSession()->getPage()->find('css', '.sf-toolbar-status')->getText();
+    static::assertEquals('404', $status);
   }
 
 }

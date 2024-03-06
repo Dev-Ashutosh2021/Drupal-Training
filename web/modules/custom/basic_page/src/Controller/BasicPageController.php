@@ -57,11 +57,9 @@ class BasicPageController extends ControllerBase
 
     public function renderCustomBlock()
     {
-        // Load the custom block plugin
         $block_plugin = \Drupal::service('plugin.manager.block')
             ->createInstance('hello_block');
 
-        // Build the render array for the block
         $build = $block_plugin->build();
 
         return $build;

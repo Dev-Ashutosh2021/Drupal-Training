@@ -1,7 +1,7 @@
 name: Basic Page Module
 type: module
 description: 'This is our first basic module'
-core_version_requirement: ^9
+core_version_requirement: ^10
 package: Custom Modules
 
 libraries:

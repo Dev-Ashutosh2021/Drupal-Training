@@ -1,60 +1,90 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace Drupal\webprofiler\DataCollector;
 
+use Drupal\Core\Extension\ModuleHandlerInterface;
+use Drupal\Core\StringTranslation\StringTranslationTrait;
+use Drupal\Core\Template\TwigEnvironment;
 use Drupal\Core\Theme\ThemeManagerInterface;
 use Drupal\Core\Theme\ThemeNegotiatorInterface;
-use Drupal\webprofiler\DrupalDataCollectorInterface;
-use Drupal\Core\StringTranslation\StringTranslationTrait;
+use Drupal\sdc\Plugin\Component;
 use Drupal\webprofiler\Theme\ThemeNegotiatorWrapper;
-use Drupal\webprofiler\Twig\Dumper\HtmlDumper;
+use League\CommonMark\CommonMarkConverter;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\DataCollector\DataCollector;
 use Symfony\Component\HttpKernel\DataCollector\LateDataCollectorInterface;
+use Twig\Markup;
+use Twig\Profiler\Dumper\HtmlDumper;
+use Twig\Profiler\Profile;
+use Twig\TwigFilter;
+use Twig\TwigFunction;
 
 /**
- * Class ThemeDataCollector.
+ * Collects theme data.
  */
-class ThemeDataCollector extends DataCollector implements DrupalDataCollectorInterface, LateDataCollectorInterface {
+class ThemeDataCollector extends DataCollector implements HasPanelInterface, LateDataCollectorInterface {
 
-  use StringTranslationTrait, DrupalDataCollectorTrait;
+  use StringTranslationTrait, DataCollectorTrait, PanelTrait;
 
   /**
-   * @var \Drupal\Core\Theme\ThemeManagerInterface
+   * Used to store twig computed data between method calls.
+   *
+   * @var array|null
    */
-  private $themeManager;
+  private ?array $computed = NULL;
 
   /**
-   * @var \Drupal\Core\Theme\ThemeNegotiatorInterface
+   * The twig profile.
+   *
+   * @var \Twig\Profiler\Profile|null
    */
-  private $themeNegotiator;
+  private ?Profile $profile = NULL;
 
   /**
-   * @var \Twig_Profiler_Profile
-   */
-  private $profile;
-
-  /**
-   * @var
-   */
-  private $computed;
-
-  /**
+   * ThemeDataCollector constructor.
+   *
    * @param \Drupal\Core\Theme\ThemeManagerInterface $themeManager
+   *   The theme manager.
    * @param \Drupal\Core\Theme\ThemeNegotiatorInterface $themeNegotiator
-   * @param \Twig_Profiler_Profile $profile
+   *   The theme negotiator.
+   * @param \Drupal\Core\Template\TwigEnvironment $twig
+   *   The Twig service.
+   * @param \Drupal\Core\Extension\ModuleHandlerInterface $moduleHandler
+   *   The module handler.
+   * @param \Twig\Profiler\Profile $profile
+   *   The twig profile.
    */
-  public function __construct(ThemeManagerInterface $themeManager, ThemeNegotiatorInterface $themeNegotiator, \Twig_Profiler_Profile $profile) {
-    $this->themeManager = $themeManager;
-    $this->themeNegotiator = $themeNegotiator;
+  public function __construct(
+    private readonly ThemeManagerInterface $themeManager,
+    private readonly ThemeNegotiatorInterface $themeNegotiator,
+    private readonly TwigEnvironment $twig,
+    public ModuleHandlerInterface $moduleHandler,
+    Profile $profile,
+  ) {
     $this->profile = $profile;
+    $this->data['components'] = [];
   }
 
   /**
    * {@inheritdoc}
    */
-  public function collect(Request $request, Response $response, \Exception $exception = NULL) {
+  public function getName(): string {
+    return 'theme';
+  }
+
+  /**
+   * Reset the collected data.
+   */
+  public function reset(): void {
+    $this->data = [];
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function collect(Request $request, Response $response, \Throwable $exception = NULL): void {
     $activeTheme = $this->themeManager->getActiveTheme();
 
     $this->data['activeTheme'] = [
@@ -64,15 +94,31 @@ class ThemeDataCollector extends DataCollector implements DrupalDataCollectorInt
       'owner' => $activeTheme->getOwner(),
       'baseThemes' => $activeTheme->getBaseThemeExtensions(),
       'extension' => $activeTheme->getExtension(),
-      'styleSheetsRemove' => $activeTheme->getStyleSheetsRemove(),
+      'librariesOverride' => $activeTheme->getLibrariesOverride(),
+      'librariesExtend' => $activeTheme->getLibrariesExtend(),
       'libraries' => $activeTheme->getLibraries(),
       'regions' => $activeTheme->getRegions(),
+    ];
+
+    $this->data['twig_extensions'] = [
+      'filters' => array_map(function (TwigFilter $filter) {
+        return [
+          'name' => $filter->getName(),
+          'callable' => $this->getCallableContext($filter->getCallable()),
+        ];
+      }, $this->twig->getFilters()),
+      'functions' => array_map(function (TwigFunction $function) {
+        return [
+          'name' => $function->getName(),
+          'callable' => $this->getCallableContext($function->getCallable()),
+        ];
+      }, $this->twig->getFunctions()),
+      'globals' => $this->twig->getGlobals(),
     ];
 
     if ($this->themeNegotiator instanceof ThemeNegotiatorWrapper) {
       $this->data['negotiator'] = [
         'class' => $this->getMethodData($this->themeNegotiator->getNegotiator(), 'determineActiveTheme'),
-        'id' => $this->themeNegotiator->getNegotiator()->_serviceId,
       ];
     }
   }
@@ -80,144 +126,319 @@ class ThemeDataCollector extends DataCollector implements DrupalDataCollectorInt
   /**
    * {@inheritdoc}
    */
-  public function lateCollect() {
+  public function lateCollect(): void {
     $this->data['twig'] = serialize($this->profile);
   }
 
   /**
-   * @return string
+   * Add an SDC component to the data collector.
+   *
+   * @param \Drupal\sdc\Plugin\Component $component
+   *   The SDC component to add.
    */
-  public function getActiveTheme() {
+  public function addComponent(Component $component): void {
+    if (!isset($this->data['components'][$component->getPluginId()])) {
+      $converter = new CommonMarkConverter();
+
+      $this->data['components'][$component->getPluginId()] = [
+        'name' => $component->metadata->name,
+        'status' => $component->metadata->status,
+        'path' => $component->metadata->path,
+        'documentation' => $converter->convert($component->metadata->documentation),
+        'group' => $component->metadata->group,
+        'thumbnail' => $component->metadata->getThumbnailPath(),
+        'plugin_id' => $component->getPluginId(),
+        'provider' => $component->getPluginDefinition()['provider'],
+        'library' => $component->library,
+        'props' => $component->getPluginDefinition()['props'] ?? [],
+        'slots' => $component->getPluginDefinition()['slots'] ?? [],
+        'count' => 1,
+      ];
+    }
+    else {
+      $this->data['components'][$component->getPluginId()]['count']++;
+    }
+  }
+
+  /**
+   * Return the active theme.
+   *
+   * @return array
+   *   The active theme.
+   */
+  public function getActiveTheme(): array {
     return $this->data['activeTheme'];
   }
 
   /**
+   * Return the theme negotiator.
+   *
    * @return array
+   *   The theme negotiator.
    */
-  public function getThemeNegotiator() {
+  public function getThemeNegotiator(): array {
     return $this->data['negotiator'];
   }
 
   /**
-   * @return int
+   * Return the time spent by the twig rendering process, in seconds.
+   *
+   * @return float
+   *   The time spent by the twig rendering process, in seconds.
    */
-  public function getTime() {
+  public function getTime(): float {
     return $this->getProfile()->getDuration() * 1000;
   }
 
   /**
-   * @return mixed
+   * Return the number of twig templates rendered.
+   *
+   * @return int
+   *   The number of twig templates rendered.
    */
-  public function getTemplateCount() {
+  public function getTemplateCount(): int {
     return $this->getComputedData('template_count');
   }
 
   /**
-   * @return mixed
+   * Return the number of twig blocks rendered.
+   *
+   * @return int
+   *   The number of twig blocks rendered.
    */
-  public function getTemplates() {
-    return $this->getComputedData('templates');
-  }
-
-  /**
-   * @return mixed
-   */
-  public function getBlockCount() {
+  public function getBlockCount(): int {
     return $this->getComputedData('block_count');
   }
 
   /**
-   * @return mixed
+   * Return the number of twig macros rendered.
+   *
+   * @return int
+   *   The number of twig macros rendered.
    */
-  public function getMacroCount() {
+  public function getMacroCount(): int {
     return $this->getComputedData('macro_count');
   }
 
   /**
-   * @return \Twig_Markup
+   * Return the number of twig filters.
+   *
+   * @return int
+   *   The number of twig filters.
    */
-  public function getHtmlCallGraph() {
-    $dumper = new HtmlDumper();
+  public function getTwigFiltersCount(): int {
+    return count($this->data['twig_extensions']['filters']);
+  }
 
-    return new \Twig_Markup($dumper->dump($this->getProfile()), 'UTF-8');
+  /**
+   * Return the number of twig functions.
+   *
+   * @return int
+   *   The number of twig functions.
+   */
+  public function getTwigFunctionsCount(): int {
+    return count($this->data['twig_extensions']['functions']);
+  }
+
+  /**
+   * Return TRUE if the SDC module is enabled.
+   *
+   * @return bool
+   *   TRUE if the SDC module is enabled.
+   */
+  public function hasComponentsModule(): bool {
+    return $this->moduleHandler->moduleExists('sdc');
+  }
+
+  /**
+   * Return the number of SDC components.
+   *
+   * @return int
+   *   The number of SDC components.
+   */
+  public function getComponentsCount(): int {
+    return count($this->data['components']);
   }
 
   /**
    * {@inheritdoc}
    */
-  public function getName() {
-    return 'theme';
-  }
+  public function getPanel(): array {
+    $filters = $this->data['twig_extensions']['filters'];
+    ksort($filters);
 
-  /**
-   * {@inheritdoc}
-   */
-  public function getTitle() {
-    return $this->t('Theme');
-  }
+    $functions = $this->data['twig_extensions']['functions'];
+    ksort($functions);
 
-  /**
-   * {@inheritdoc}
-   */
-  public function getPanelSummary() {
-    return $this->t('Name: @name', ['@name' => $this->getActiveTheme()['name']]);
-  }
+    $tabs = [];
 
-  /**
-   * {@inheritdoc}
-   */
-  public function getIcon() {
-    return 'iVBORw0KGgoAAAANSUhEUgAAABUAAAAcCAYAAACOGPReAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAlVJREFUeNrMlk1IVFEUx53K6AOjUBQri6SihQiRziaRQegDlKJFBCpSiZtoE4hWtFFRwcCVBqEWfaAE7SoXajXLQoRcFAUSaBgUJQxKYUrT78D/wevx3psaE7rw49x377ln7vl4500kmUxm/OuxJmMVxrqwzVgsth5xHKogCnthCd7BU7gdj8envOciQe5j8CyiFQq0tAgDsA+OaG0eLmF4INQoxrYg+iEXhqEGiqGBw/3SGUeU6MgC61mBMUU5GzEKJ6ES5S5knbbXui/jmv8MjCkGMxEPFbsFyAeL1y6pXEenSO4fctlIhCXqqtmGj5ADcblZoX1z8aLn/Es475soDhcyfwt3LPDK8jPYFlIcZrCCEH0LqlP7NXN/CCUL/CvmkynKcczPoNv9Y5LXuHVC2Y6mMFoetOG4/0kl9LfDquMyN076ue/I11ANHSqVH0pgLUz7GK2HjUHuf1DGm/jVYZVYJeILz5163oy46Tn/GL5r396yc+hXOzcckiyVQp7CsVNvmI2DHoODcMFcR6eZ+RO4747pJuYjcFilssMM6vB7+Or8IGMWWjDWx7ntzHvglCWZtfbf3n0UtiJ6FVO/8QbuQh+H59C37nUD9sAj1k6ENZQylctuJWsGJswDDibY32C3gitKsCUwyt7nlK0vpMc2Wh/Q4zIcxeDztDu/QjSoPmujzWswZef3GLRXuV2xPa3u/yDwjfoDgxE1nP1aquOG91b64StWlp0xtaKvKbfMUS1maukWvEj7a6pxBg6oL1iddnsbSFox/S/+TKyK0V8CDABrCdI/1oTqiQAAAABJRU5ErkJggg==';
-  }
-
-  /**
-   * @return array
-   */
-  public function getData() {
-    $data = $this->data;
-
-    $data['twig'] = [
-      'callgraph' => (string) $this->getHtmlCallGraph(),
-      'render_time' => $this->getTime(),
-      'template_count' => $this->getTemplateCount(),
-      'templates' => $this->getTemplates(),
-      'block_count' => $this->getBlockCount(),
-      'macro_count' => $this->getMacroCount(),
+    $tabs[] = [
+      'label' => 'Theme data',
+      'content' => [
+        '#type' => 'inline_template',
+        '#template' => '{{ data|raw }}',
+        '#context' => [
+          'data' => $this->dumpData($this->cloneVar($this->data['activeTheme'])),
+        ],
+      ],
     ];
 
-    return $data;
-  }
+    $tabs[] = [
+      'label' => 'Twig filters',
+      'content' => [
+        '#theme' => 'webprofiler_dashboard_section',
+        '#data' => [
+          '#type' => 'table',
+          '#header' => [
+            $this->t('Name'),
+            $this->t('Callable'),
+          ],
+          '#rows' => $filters,
+          '#attributes' => [
+            'class' => [
+              'webprofiler__table',
+            ],
+          ],
+          '#sticky' => TRUE,
+        ],
+      ],
+    ];
 
-  /**
-   * @return mixed|\Twig_Profiler_Profile
-   */
-  private function getProfile() {
-    if (NULL === $this->profile) {
-      $this->profile = unserialize($this->data['twig']);
+    $tabs[] = [
+      'label' => 'Twig functions',
+      'content' => [
+        '#theme' => 'webprofiler_dashboard_section',
+        '#data' => [
+          '#type' => 'table',
+          '#header' => [
+            $this->t('Name'),
+            $this->t('Callable'),
+          ],
+          '#rows' => $functions,
+          '#attributes' => [
+            'class' => [
+              'webprofiler__table',
+            ],
+          ],
+          '#sticky' => TRUE,
+        ],
+      ],
+    ];
+
+    $tabs[] = [
+      'label' => 'Twig globals',
+      'content' => [
+        '#theme' => 'webprofiler_dashboard_section',
+        '#data' => [
+          '#type' => 'table',
+          '#header' => [
+            $this->t('Name'),
+            $this->t('Callable'),
+          ],
+          '#rows' => $this->data['twig_extensions']['globals'],
+          '#attributes' => [
+            'class' => [
+              'webprofiler__table',
+            ],
+          ],
+          '#sticky' => TRUE,
+        ],
+      ],
+    ];
+
+    $tabs[] = [
+      'label' => 'Rendering Call Graph',
+      'content' => [
+        '#theme' => 'webprofiler_dashboard_section',
+        '#data' => [
+          '#type' => 'inline_template',
+          '#template' => '<div id="twig-dump">{{ data|raw }}</div>',
+          '#context' => [
+            'data' => (string) $this->getHtmlCallGraph(),
+          ],
+        ],
+      ],
+    ];
+
+    if ($this->moduleHandler->moduleExists('sdc')) {
+      $tabs[] = [
+        'label' => 'Components',
+        'content' => $this->renderComponents($this->data['components']),
+      ];
     }
 
-    return $this->profile;
+    return [
+      '#theme' => 'webprofiler_dashboard_tabs',
+      '#tabs' => $tabs,
+    ];
   }
 
   /**
-   * @param $index
+   * Render the twig call graph.
+   *
+   * @return \Twig\Markup
+   *   The twig call graph.
+   */
+  private function getHtmlCallGraph(): Markup {
+    $dumper = new HtmlDumper();
+
+    return new Markup($dumper->dump($this->getProfile()), 'UTF-8');
+  }
+
+  /**
+   * Render the SDC components.
+   *
+   * @param array $components
+   *   The SDC components.
+   *
+   * @return array
+   *   The render array of the SDC components.
+   */
+  private function renderComponents(array $components): array {
+    return [
+      '#theme' => 'webprofiler_dashboard_components',
+      '#components' => $components,
+    ];
+  }
+
+  /**
+   * Return the twig profile, deserialized from data, if needed.
+   *
+   * @return \Twig\Profiler\Profile
+   *   The twig profile, deserialized from data, if needed.
+   */
+  private function getProfile(): Profile {
+    return $this->profile ??= unserialize(
+      $this->data['twig'],
+      ['allowed_classes' => ['\Twig\Profiler\Profile', Profile::class]],
+    );
+  }
+
+  /**
+   * Return a specific computed data.
+   *
+   * @param string $index
+   *   The index of the data to return.
    *
    * @return mixed
+   *   The computed data.
    */
-  private function getComputedData($index) {
-    if (NULL === $this->computed) {
-      $this->computed = $this->computeData($this->getProfile());
-    }
+  private function getComputedData(string $index): mixed {
+    $this->computed ??= $this->computeData($this->getProfile());
 
     return $this->computed[$index];
   }
 
   /**
-   * @param \Twig_Profiler_Profile $profile
+   * Compute the data from the twig profile.
+   *
+   * @param \Twig\Profiler\Profile $profile
+   *   The twig profile.
    *
    * @return array
+   *   The computed data.
    */
-  private function computeData(\Twig_Profiler_Profile $profile) {
+  private function computeData(Profile $profile): array {
     $data = [
       'template_count' => 0,
       'block_count' => 0,

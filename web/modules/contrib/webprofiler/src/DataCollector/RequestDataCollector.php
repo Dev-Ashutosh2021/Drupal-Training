@@ -1,120 +1,250 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace Drupal\webprofiler\DataCollector;
 
-use Drupal\Core\Controller\ControllerResolverInterface;
-use Drupal\webprofiler\DrupalDataCollectorInterface;
-use Drupal\Core\StringTranslation\StringTranslationTrait;
+use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Controller\ControllerResolverInterface;
 use Symfony\Component\HttpKernel\DataCollector\RequestDataCollector as BaseRequestDataCollector;
 
 /**
- * Integrate _content into the RequestDataCollector.
+ * Collects HTTP requests data.
+ *
+ * @phpstan-ignore-next-line
  */
-class RequestDataCollector extends BaseRequestDataCollector implements DrupalDataCollectorInterface {
+class RequestDataCollector extends BaseRequestDataCollector implements HasPanelInterface {
 
-  use StringTranslationTrait, DrupalDataCollectorTrait;
+  use DataCollectorTrait;
+  use PanelTrait;
+
+  public const SERVICE_ID = 'service_id';
+
+  public const CALLABLE = 'callable';
 
   /**
-   * @var \Drupal\Core\Controller\ControllerResolverInterface
+   * The Controller resolver service.
+   *
+   * @var \Symfony\Component\HttpKernel\Controller\ControllerResolverInterface
    */
-  private $controllerResolver;
+  private ControllerResolverInterface $controllerResolver;
 
   /**
+   * The list of access checks applied to this request.
+   *
    * @var array
    */
-  private $accessCheck;
+  private array $accessChecks;
 
   /**
-   * @param \Drupal\Core\Controller\ControllerResolverInterface $controllerResolver
+   * RequestDataCollector constructor.
+   *
+   * @param \Symfony\Component\HttpKernel\Controller\ControllerResolverInterface $controllerResolver
+   *   The Controller resolver service.
    */
   public function __construct(ControllerResolverInterface $controllerResolver) {
     parent::__construct();
 
     $this->controllerResolver = $controllerResolver;
-    $this->accessCheck = [];
+    $this->accessChecks = [];
   }
 
   /**
    * {@inheritdoc}
    */
-  public function collect(Request $request, Response $response, \Exception $exception = NULL) {
-    parent::collect($request, $response, $exception);
+  public function collect(Request $request, Response $response, \Throwable $exception = NULL): void {
+    parent::collect($request, $response);
+
+    $this->data['big_pipe'] = $response->headers->get('X-Drupal-BigPipe-Placeholder');
 
     if ($controller = $this->controllerResolver->getController($request)) {
       if (is_object($controller)) {
-        $class = get_class((object) $controller);
-        $method = '__invoke';
-      } else {
-        $class = $controller[0];
-        $method = $controller[1];
+        $this->data['controller'] = get_class($controller);
       }
-
-      $this->data['controller'] = $this->getMethodData($class, $method);
-      $this->data['access_check'] = $this->accessCheck;
+      else {
+        $this->data['controller'] = $this->getMethodData(
+          $controller[0], $controller[1],
+        ) ?? 'no controller';
+      }
+      $this->data['access_checks'] = $this->accessChecks;
     }
+
+    unset($this->data['request_attributes']['_route_params']);
   }
 
   /**
-   * @param $service_id
-   * @param $callable
-   * @param \Symfony\Component\HttpFoundation\Request $request
+   * {@inheritdoc}
    */
-  public function addAccessCheck($service_id, $callable, Request $request) {
-    $this->accessCheck[$request->getPathInfo()][] = [
-      'service_id' => $service_id,
-      'callable' => $this->getMethodData($callable[0], $callable[1]),
+  public function getPanel(): array {
+    $tabs = [];
+
+    if ($this->data['big_pipe']) {
+      $tabs[] = [
+        'label' => 'Big Pipe',
+        'content' => $this->renderBigPipe($this->data['big_pipe']),
+      ];
+    }
+
+    $tabs[] = [
+      'label' => 'Request attributes',
+      'content' => $this->renderTable(
+        $this->getRequestAttributes()->all()),
+    ];
+
+    if ($this->getRequestQuery()->count() > 0) {
+      $tabs[] = [
+        'label' => 'GET',
+        'content' => $this->renderTable(
+          $this->getRequestQuery()->all()),
+      ];
+    }
+
+    if ($this->getRequestRequest()->count() > 0) {
+      $tabs[] = [
+        'label' => 'POST',
+        'content' => $this->renderTable(
+          $this->getRequestRequest()->all()),
+      ];
+    }
+
+    if ($this->getContent() !== '') {
+      $tabs[] = [
+        'label' => 'Raw content',
+        'content' => $this->renderContent($this->getContent()),
+      ];
+    }
+
+    if ($this->getAccessChecks()->count() > 0) {
+      $tabs[] = [
+        'label' => 'Access check',
+        'content' => $this->renderTable(
+          $this->getAccessChecks()->all()),
+      ];
+    }
+
+    if ($this->getRequestCookies()->count() > 0) {
+      $tabs[] = [
+        'label' => 'Cookies',
+        'content' => $this->renderTable(
+          $this->getRequestCookies()->all()),
+      ];
+    }
+
+    $tabs[] = [
+      'label' => 'Session Metadata',
+      'content' => $this->renderTable(
+        $this->getSessionMetadata()),
+    ];
+
+    $tabs[] = [
+      'label' => 'Session Attributes',
+      'content' => $this->renderTable(
+        $this->getSessionAttributes()),
+    ];
+
+    if ($this->getRequestCookies()->count() > 0) {
+      $tabs[] = [
+        'label' => 'Request headers',
+        'content' => $this->renderTable(
+          $this->getRequestHeaders()->all()),
+      ];
+    }
+
+    if ($this->getRequestCookies()->count() > 0) {
+      $tabs[] = [
+        'label' => 'Server Parameters',
+        'content' => $this->renderTable(
+          $this->getRequestServer()->all()),
+      ];
+    }
+
+    if ($this->getRequestCookies()->count() > 0) {
+      $tabs[] = [
+        'label' => 'Response headers',
+        'content' => $this->renderTable(
+          $this->getResponseHeaders()->all()),
+      ];
+    }
+
+    return [
+      '#theme' => 'webprofiler_dashboard_tabs',
+      '#tabs' => $tabs,
     ];
   }
 
   /**
-   * {@inheritdoc}
+   * Save an access check.
+   *
+   * @param string $service_id
+   *   The service id of the service implementing the access check.
+   * @param array $callable
+   *   The callable that implement the access check.
    */
-  public function getTitle() {
-    return $this->t('Request');
+  public function addAccessCheck(
+    string $service_id,
+    array $callable
+  ): void {
+    $this->accessChecks[] = [
+      self::SERVICE_ID => $service_id,
+      self::CALLABLE => $this->getMethodData($callable[0], $callable[1]),
+    ];
   }
 
   /**
-   * {@inheritdoc}
+   * Return the list of access checks as ParameterBag.
+   *
+   * @return \Symfony\Component\HttpFoundation\ParameterBag
+   *   The list of access checks.
    */
-  public function getPanelSummary() {
-    return $this->data['status_code'] . ' ' . $this->data['status_text'];
+  public function getAccessChecks(): ParameterBag {
+    return isset($this->data['access_checks']) ? new ParameterBag($this->data['access_checks']->getValue()) : new ParameterBag();
   }
 
   /**
-   * {@inheritdoc}
+   * Return the render array with BigPipe data.
+   *
+   * @param string|null $big_pipe
+   *   The BigPipe placeholder.
+   *
+   * @return array
+   *   The render array with BigPipe data.
    */
-  public function getIcon() {
-    return 'iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAQAAADYBBcfAAACvElEQVR42tVTbUhTYRTerDCnKVoUUr/KCZmypA9Koet0bXNLJ5XazDJ/WFaCUY0pExRZXxYiJgsxWWjkaL+yK+po1gjyR2QfmqWxtBmaBtqWGnabT++c11Fu4l/P4VzOPc95zoHznsNZodIbLDdRcKnc1Bu8DAK45ZsOnykQNMopsNooLxCknb0cDq5vml9FtHiIgpBR0R6iihYyFMTDt2Lg56ObPkI6TMGXSof1EV67IqCwisJSWliFAG/E0CfFIiebdNypcxi/1zgyFiIiZ3sJQr0RQx5frLa6k7SOKRo3oMFNR5t62h2rttKXEOKFqDCxtXNmmBokO2KKTlp3IdWuT2dYRNGKwEXEBCcL172G5FG0aIxC0kR9PBTVH1kkwQn+IqJnCE33EalVzT9GJQS1tAdD3CKicJYFrxqx7W2ejCEdZy1FiC5tZxHhLJKOZaRdQJAyV/YAvDliySALHxmxR4Hqe2iwvaOR/CEuZYJFSgYhVbZRkA8KGdEktrqnqra90NndCdkt77fjIHIhexOrfO6O3bbbOj/rqu5IptgyR3sU93QbOYhquZK4MCDp0Ina/PLsu5JvbCTRaapUdUmIV/RzoMdsk/0hWRNdAvKOmvqlN0drsJbJf1P4YsQ5lGrJeuosiOUgbOC8cto3LfOXTdVd7BqZsQKbse+0jUL6WPcesqs4MNSUTQAxGjwFiC8m3yzmqwHJBWYKBJ9WNqW/dHkpU/osch1Yj5RJfXPfSEe/2UPsN490NPfZG5CKyJmcV5ayHyzy7BMqsXfuHhGK/cjAIeSpR92gehR55D8TcQhDEKJwytBJ4fr4NULvrEM8NszfJPyxDoHYAQ1oPCWmIX4gifmDS/DV2DKeb25FHWr76yEG7/9L4YFPeiQQ4/8LkgJ8Et+NncTCsYqzXAEXa7CWdPZzGWdlyV+vST0JanfPvwAAAABJRU5ErkJggg==';
-  }
-
-  /**
-   * @return array|string
-   */
-  public function getData() {
-    // Drupal 8.5+ uses Symfony 3.4.x that changes the way the Request data are
-    // collected. Data is altered with \Symfony\Component\HttpKernel\DataCollector\DataCollector::cloneVar.
-    // The stored data (of type \Symfony\Component\VarDumper\Cloner\Data) is
-    // suitable to be converted to a string by a Dumper (\Symfony\Component\VarDumper\Dumper\DataDumperInterface).
-    // In our implementation however we need that data as an array, to be later
-    // converted in a json response by a REST endpoint. We need to refactor the
-    // whole way Web Profiler works to allow that. At the moment we just
-    // retrieve the raw Data value and do some string manipulation to clean the
-    // output a bit.
-    $data = $this->data->getValue(TRUE);
-    unset($data['request_attributes']['_route_params']);
-    unset($data['request_attributes']['_access_result']);
-
-    $route_object = [];
-    foreach ($data['request_attributes']['_route_object'] as $key => $result) {
-      $key = str_replace("\0", '', $key);
-      $key = str_replace('Symfony\Component\Routing\Route', 'Symfony\Component\Routing\Route::', $key);
-      $route_object[$key] = $result;
+  private function renderBigPipe(?string $big_pipe): array {
+    if ($big_pipe == NULL) {
+      return [];
     }
-    $data['request_attributes']['_route_object'] = $route_object;
 
-    return $data;
+    $parts = explode('&', substr($big_pipe, strlen('callback=')));
+    $data = urldecode($parts[0]);
+
+    return [
+      '#type' => 'inline_template',
+      '#template' => '<h3>BigPipe placeholder</h3>{{ data|raw }}',
+      '#context' => [
+        'data' => $data,
+      ],
+    ];
+  }
+
+  /**
+   * Render the content of a POST request.
+   *
+   * @param string $content
+   *   The content of a POST request.
+   *
+   * @return array
+   *   The render array of the content.
+   */
+  private function renderContent(string $content): array {
+    return [
+      '#type' => 'inline_template',
+      '#template' => '<h3>{{ title }}</h3> {% if data %}{{ data|raw }}{% else %}<em>{{ "No data"|t }}</em>{% endif %}',
+      '#context' => [
+        'data' => $content,
+      ],
+    ];
   }
 
 }

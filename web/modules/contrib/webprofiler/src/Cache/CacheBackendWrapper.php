@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace Drupal\webprofiler\Cache;
 
 use Drupal\Core\Cache\Cache;
@@ -13,27 +15,6 @@ use Drupal\webprofiler\DataCollector\CacheDataCollector;
 class CacheBackendWrapper implements CacheBackendInterface, CacheTagsInvalidatorInterface {
 
   /**
-   * The data collector to register the calls.
-   *
-   * @var \Drupal\webprofiler\DataCollector\CacheDataCollector
-   */
-  protected $cacheDataCollector;
-
-  /**
-   * The wrapped cache backend.
-   *
-   * @var \Drupal\Core\Cache\CacheBackendInterface
-   */
-  protected $cacheBackend;
-
-  /**
-   * The name of the wrapped cache bin.
-   *
-   * @var string
-   */
-  protected $bin;
-
-  /**
    * Constructs a new CacheBackendWrapper.
    *
    * @param \Drupal\webprofiler\DataCollector\CacheDataCollector $cacheDataCollector
@@ -43,25 +24,26 @@ class CacheBackendWrapper implements CacheBackendInterface, CacheTagsInvalidator
    * @param string $bin
    *   The name of the wrapped cache bin.
    */
-  public function __construct(CacheDataCollector $cacheDataCollector, CacheBackendInterface $cacheBackend, $bin) {
-    $this->cacheDataCollector = $cacheDataCollector;
-    $this->cacheBackend = $cacheBackend;
-    $this->bin = $bin;
+  public function __construct(
+    protected readonly CacheDataCollector $cacheDataCollector,
+    protected readonly CacheBackendInterface $cacheBackend,
+    protected readonly string $bin
+  ) {
   }
 
   /**
    * {@inheritdoc}
    */
-  public function get($cid, $allow_invalid = FALSE) {
+  public function get($cid, $allow_invalid = FALSE): object|bool {
     $cache = $this->cacheBackend->get($cid, $allow_invalid);
 
     if ($cache) {
-      $cacheCopy = new \stdClass();
-      $cacheCopy->cid = $cache->cid;
-      $cacheCopy->expire = $cache->expire;
-      $cacheCopy->tags = $cache->tags;
+      $cache_copy = new \stdClass();
+      $cache_copy->cid = $cache->cid;
+      $cache_copy->expire = $cache->expire;
+      $cache_copy->tags = $cache->tags;
 
-      $this->cacheDataCollector->registerCacheHit($this->bin, $cacheCopy);
+      $this->cacheDataCollector->registerCacheHit($this->bin, $cache_copy);
     }
     else {
       $this->cacheDataCollector->registerCacheMiss($this->bin, $cid);
@@ -73,21 +55,21 @@ class CacheBackendWrapper implements CacheBackendInterface, CacheTagsInvalidator
   /**
    * {@inheritdoc}
    */
-  public function getMultiple(&$cids, $allow_invalid = FALSE) {
-    $cidsCopy = $cids;
+  public function getMultiple(&$cids, $allow_invalid = FALSE): array {
+    $cids_copy = $cids;
     $cache = $this->cacheBackend->getMultiple($cids, $allow_invalid);
 
-    foreach ($cidsCopy as $cid) {
-      if (in_array($cid, $cids)) {
+    foreach ($cids_copy as $cid) {
+      if (in_array($cid, $cids, TRUE)) {
         $this->cacheDataCollector->registerCacheMiss($this->bin, $cid);
       }
       else {
-        $cacheCopy = new \stdClass();
-        $cacheCopy->cid = $cache[$cid]->cid;
-        $cacheCopy->expire = $cache[$cid]->expire;
-        $cacheCopy->tags = $cache[$cid]->tags;
+        $cache_copy = new \stdClass();
+        $cache_copy->cid = $cid;
+        $cache_copy->expire = $cache[$cid]->expire;
+        $cache_copy->tags = $cache[$cid]->tags;
 
-        $this->cacheDataCollector->registerCacheHit($this->bin, $cacheCopy);
+        $this->cacheDataCollector->registerCacheHit($this->bin, $cache_copy);
       }
     }
 
@@ -98,49 +80,49 @@ class CacheBackendWrapper implements CacheBackendInterface, CacheTagsInvalidator
    * {@inheritdoc}
    */
   public function set($cid, $data, $expire = Cache::PERMANENT, array $tags = []) {
-    return $this->cacheBackend->set($cid, $data, $expire, $tags);
+    $this->cacheBackend->set($cid, $data, $expire, $tags);
   }
 
   /**
    * {@inheritdoc}
    */
   public function setMultiple(array $items) {
-    return $this->cacheBackend->setMultiple($items);
+    $this->cacheBackend->setMultiple($items);
   }
 
   /**
    * {@inheritdoc}
    */
   public function delete($cid) {
-    return $this->cacheBackend->delete($cid);
+    $this->cacheBackend->delete($cid);
   }
 
   /**
    * {@inheritdoc}
    */
   public function deleteMultiple(array $cids) {
-    return $this->cacheBackend->deleteMultiple($cids);
+    $this->cacheBackend->deleteMultiple($cids);
   }
 
   /**
    * {@inheritdoc}
    */
   public function deleteAll() {
-    return $this->cacheBackend->deleteAll();
+    $this->cacheBackend->deleteAll();
   }
 
   /**
    * {@inheritdoc}
    */
   public function invalidate($cid) {
-    return $this->cacheBackend->invalidate($cid);
+    $this->cacheBackend->invalidate($cid);
   }
 
   /**
    * {@inheritdoc}
    */
   public function invalidateMultiple(array $cids) {
-    return $this->cacheBackend->invalidateMultiple($cids);
+    $this->cacheBackend->invalidateMultiple($cids);
   }
 
   /**
@@ -156,21 +138,31 @@ class CacheBackendWrapper implements CacheBackendInterface, CacheTagsInvalidator
    * {@inheritdoc}
    */
   public function invalidateAll() {
-    return $this->cacheBackend->invalidateAll();
+    $this->cacheBackend->invalidateAll();
   }
 
   /**
    * {@inheritdoc}
    */
   public function garbageCollection() {
-    return $this->cacheBackend->garbageCollection();
+    $this->cacheBackend->garbageCollection();
   }
 
   /**
    * {@inheritdoc}
    */
   public function removeBin() {
-    return $this->cacheBackend->removeBin();
+    $this->cacheBackend->removeBin();
+  }
+
+  /**
+   * Return the wrapped cache backend.
+   *
+   * @return \Drupal\Core\Cache\CacheBackendInterface
+   *   The wrapped cache backend.
+   */
+  public function getWrapped(): CacheBackendInterface {
+    return $this->cacheBackend;
   }
 
 }
