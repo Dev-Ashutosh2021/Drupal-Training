@@ -13,6 +13,8 @@ class RegistrationForm extends FormBase
     return 'employee_registration_form';
   }
 
+
+  // Build form
   public function buildForm(array $form, FormStateInterface $form_state)
   {
     $form['employee_name'] = array(
@@ -57,6 +59,8 @@ class RegistrationForm extends FormBase
     return $form;
   }
 
+
+  //Validation
   public function validateForm(array &$form, FormStateInterface $form_state) {
     if(strlen($form_state->getValue('employee_id')) < 8) {
       $form_state->setErrorByName('employee_id', $this->t('Please enter a valid Employee ID'));
@@ -66,11 +70,27 @@ class RegistrationForm extends FormBase
     }
   }
   
+
+  //Form submit
   public function submitForm(array &$form, FormStateInterface $form_state) {
-    \Drupal::messenger()->addMessage(t("Employee Registration Done!! Registered Values are:"));
-  foreach ($form_state->getValues() as $key => $value) {
-    \Drupal::messenger()->addMessage($key . ': ' . $value);
-    }
+
+    $values = $form_state->getValues();
+  
+    $connection = \Drupal::database();
+    $query = $connection->insert('employee_registration')
+      ->fields([
+        'employee_name' => $values['employee_name'],
+        'employee_id' => $values['employee_id'],
+        'employee_email' => $values['employee_email'],
+        'employee_phone' => $values['employee_phone'],
+        'employee_dob' => $values['employee_dob'],
+        'employee_gender' => $values['employee_gender'],
+      ]);
+    $query->execute();
+  
+    // Display a success message.
+    \Drupal::messenger()->addMessage($this->t('Employee Registration Done!'));
+  
   }
 
 }

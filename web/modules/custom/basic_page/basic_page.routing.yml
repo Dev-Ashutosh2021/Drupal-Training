@@ -26,6 +26,6 @@ basic_page.studentRegistration:
   path: '/basic-form'
   defaults:
     _form: '\Drupal\basic_page\Form\RegistrationForm'
-    _title: 'Basic Form'
+    _title: 'Employee Registration'
   requirements:
     _permission: 'access content'
