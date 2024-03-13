@@ -2,3 +2,14 @@ global-styling:
   css:
     theme:
       css/style.css: {}
+      css/base.css: {}
+
+
+  js:
+    js/bootstrap.min.js: {}
+    js/script.js: {}
+    js/all.js: {}
+    js/latest.js: {}
+ 
+
+      
