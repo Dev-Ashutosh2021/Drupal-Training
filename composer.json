@@ -36,6 +36,7 @@
         "drupal/paragraphs": "^1.17",
         "drupal/pathauto": "^1.12",
         "drupal/search_api": "^1.31",
+        "drupal/vani": "^10.0",
         "drupal/view_custom_table": "^2.0@beta",
         "drupal/webprofiler": "^10",
         "drush/drush": "^12"

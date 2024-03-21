@@ -1,0 +1,14 @@
+name: 'Atturra Theme'
+type: theme
+description: 'Atturra is a simple Drupal theme created by me.'
+package: Custom
+core_version_requirement: ^10
+base theme: false
+libraries:
+  - atturra/global-styling
+regions:
+  header: 'Header'
+  logo: 'Logo'
+  menu: 'Main Menu'
+  content: 'Content'
+  footer: 'Footer'
